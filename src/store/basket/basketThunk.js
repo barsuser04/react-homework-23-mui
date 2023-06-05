@@ -1,12 +1,19 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { fetchRequest } from "../../lib/fetchAPI";
+import {
+  addToBasketRequest,
+  decrementBasketRequest,
+  deleteBasketRequest,
+  getBasketRequest,
+  incrementBasketRequest,
+} from "../../api/orderFoodService";
 
 export const getBasket = createAsyncThunk(
   "basket/getBasket",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetchRequest("/basket");
-      return response.items;
+      const response = await getBasketRequest();
+
+      return response.data.data.items;
     } catch (error) {
       return rejectWithValue(
         error?.response?.message || "Something went wrong!"
@@ -19,10 +26,7 @@ export const addItem = createAsyncThunk(
   "basket/addItem",
   async (payload, { rejectWithValue, dispatch }) => {
     try {
-      const response = await fetchRequest(`/foods/${payload.id}/addToBaskets`, {
-        method: "POST",
-        body: { amount: payload.amount },
-      });
+      const response = await addToBasketRequest(payload);
 
       dispatch(getBasket());
 
@@ -37,10 +41,7 @@ export const incrementFood = createAsyncThunk(
   "basket/increment",
   async (payload, { rejectWithValue, dispatch }) => {
     try {
-      const response = await fetchRequest(`/basketItem/${payload.id}/update`, {
-        method: "PUT",
-        body: { amount: payload.amount + 1 },
-      });
+      const response = await incrementBasketRequest(payload);
 
       dispatch(getBasket());
 
@@ -56,13 +57,7 @@ export const decrementFood = createAsyncThunk(
   async (payload, { rejectWithValue, dispatch }) => {
     if (payload.amount !== 0) {
       try {
-        const response = await fetchRequest(
-          `/basketItem/${payload.id}/update`,
-          {
-            method: "PUT",
-            body: { amount: payload.amount },
-          }
-        );
+        const response = await decrementBasketRequest(payload);
 
         dispatch(getBasket());
 
@@ -72,12 +67,7 @@ export const decrementFood = createAsyncThunk(
       }
     } else {
       try {
-        const response = await fetchRequest(
-          `/basketItem/${payload.id}/delete`,
-          {
-            method: "DELETE",
-          }
-        );
+        const response = await deleteBasketRequest(payload);
 
         dispatch(getBasket());
 
